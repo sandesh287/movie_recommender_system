@@ -92,17 +92,75 @@ movies = pd.DataFrame(movies_dict)
 # ------------------ Streamlit UI ------------------
 st.set_page_config(page_title="Movie Recommender", layout="wide")
 
+
+# ------------------ Global CSS ------------------
+st.markdown("""
+<style>
+/* Center the main content column */
+.css-18e3th9 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Optional: center selectbox and button, make selectbox smaller */
+.css-1l02zno {
+    width: 300px;
+}
+
+/* Cards wrapper to center the row */
+.cards-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 st.title('🎬 Movie Recommender System')
 st.write("Discover movies like your favorites 🍿")
 
 
-movie_list = movies['title'].values.tolist()
+movie_list = [str(title).strip() for title in movies['title'].values]
+
+# Custom container style for the selectbox
+st.markdown("""
+<style>
+/* Style the selectbox container */
+div[data-baseweb="select"] > div {
+  background: linear-gradient(90deg, #7b1fa2, #9c27b0);
+  border-radius: 12px;
+  color: #f1e9ff;
+  font-weight: 500;
+}
+
+/* Style the dropdown items */
+div[role="option"] {
+  background-color: rgba(123, 31, 162, 0.9);
+  color: #f1e9ff;
+}
+
+/* Hover effect on dropdown items */
+div[role="option"]:hover {
+  background-color: rgba(156, 39, 176, 0.9);
+}
+
+/* Selected item text */
+div[data-baseweb="select"] span {
+  color: #f1e9ff !important;
+  font-weight: 600;
+}
+</style>
+""", unsafe_allow_html=True)
 
 selected_movie = st.selectbox(
-  "🎬 Choose a movie:",
-  movies['title'].values,
-  index=None,
-  placeholder="Start typing to search..."
+    "🎬 Choose a movie:",
+    movies['title'].values,
+    index=None,
+    placeholder="Start typing to search..."
 )
 
 
@@ -176,6 +234,34 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# ------------------ Display Selected Movie ------------------
+if selected_movie:
+  movie_data = movies[movies['title'] == selected_movie].iloc[0]
+  poster, overview, rating, genres, year = fetch_movie_details(movie_data.movie_id)
+  
+  st.subheader("🎬 Your Selected Movie")
+  
+  # Use columns to match card width
+  cols = st.columns(5)  # same as recommended cards
+  with cols[0]:  # put in first column
+    st.markdown(
+      f"""
+      <div class="movie-card" style="border: 2px solid #7b1fa2; background: linear-gradient(to bottom, transparent, rgba(123,31,162,0.9));">
+        <img src="{poster}" width="180" style="border-radius:8px; display:block; margin-left:auto; margin-right:auto;">
+        <div class="movie-title">{movie_data.title}</div>
+        <div class="movie-meta">⭐ {rating} | {year}</div>
+        <div class="movie-meta">{genres}</div>
+        <div class="movie-overview">{overview}</div>
+      </div>
+      """,
+      unsafe_allow_html=True
+    )
+
+
+# Add spacing before the button
+st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 
 
 # ------------------ Recommendation Display ------------------
